@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Game</title>
+    <style>
+        .bingo-board {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin: 20px auto;
+            width: 300px;
+        }
+        .cell {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #000;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .free {
+            background-color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bingo Game</h1>
+    <div id="bingo-container" class="bingo-board"></div>
+    <button id="generate-board">Generate Bingo Board</button>
+    <button id="print-boards">Print Boards</button>
+    <script>
+        let bingoNumbers = [];
+
+        async function fetchBingoNumbers() {
+            const response = await fetch('list.txt');
+            const text = await response.text();
+            bingoNumbers = text.split('\n').map(Number).filter(Boolean);
+        }
+
+        function generateBingoBoard() {
+            if(bingoNumbers.length === 0) return;
+            const board = [];
+            const selectedNumbers = new Set();
+
+            while (board.length < 5) {
+                const randomNum = bingoNumbers[Math.floor(Math.random() * bingoNumbers.length)];
+                if (!selectedNumbers.has(randomNum)) {
+                    board.push(randomNum);
+                    selectedNumbers.add(randomNum);
+                }
+            }
+
+            const emptyIndex = Math.floor(25 / 2);
+            const grid = document.getElementById('bingo-container');
+            grid.innerHTML = '';
+
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                if (i === emptyIndex) {
+                    cell.classList.add('free');
+                    cell.innerText = 'FREE';
+                } else {
+                    cell.innerText = board[i < emptyIndex ? i : i - 1];
+                }
+                cell.addEventListener('click', () => {
+                    cell.classList.toggle('marked');
+                });
+                grid.appendChild(cell);
+            }
+        }
+
+        function printBoards() {
+            window.print();
+        }
+
+        document.getElementById('generate-board').onclick = () => {
+            generateBingoBoard();
+        };
+
+        document.getElementById('print-boards').onclick = () => {
+            printBoards();
+        };
+
+        fetchBingoNumbers();
+    </script>
+</body>
+</html>
